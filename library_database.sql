@@ -19,6 +19,14 @@ CREATE TABLE `books` (
   PRIMARY KEY (`id`)
 );
 
+CREATE TABLE `users` (
+  `user_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(100) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `is_admin` TINYINT(1) DEFAULT 0,
+  PRIMARY KEY (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Table structure for table `checked_out`
 CREATE TABLE `checked_out` (
@@ -31,16 +39,6 @@ CREATE TABLE `checked_out` (
   KEY `book_id` (`book_id`),
   CONSTRAINT `checked_out_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `checked_out_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Table structure for table `users`
-CREATE TABLE `users` (
-  `user_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(100) NOT NULL,
-  `email` VARCHAR(100) NOT NULL,
-  `password` VARCHAR(255) NOT NULL,
-  `is_admin` TINYINT(1) DEFAULT 0,
-  PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table `users`
