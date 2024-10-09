@@ -1,0 +1,111 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+h1, h2, h3 {
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+}
+
+/* Button Styles */
+.button {
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #0056b3; /* Darker blue */
+}
+
+/* Form Styles */
+form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #0056b3;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Label Styles */
+label {
+    font-weight: bold;
+}
+
+/* Navigation Styles */
+.navbar {
+    list-style-type: none; /* Remove bullet points */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    background-color: #333; /* Dark background */
+}
+
+.navbar li {
+    display: inline; /* Display links inline */
+}
+
+.navbar li a {
+    color: white; /* Link color */
+    text-decoration: none; /* Remove underline */
+    padding: 15px 20px; /* Space around links */
+    display: inline-block; /* Allow padding */
+}
+
+.navbar li a:hover {
+    background-color: #007bff; /* Highlight on hover */
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navbar li {
+        display: block; /* Stack links on small screens */
+        text-align: center; /* Center align text */
+    }
+
+    .navbar li a {
+        display: block; /* Full width links */
+    }
+}
