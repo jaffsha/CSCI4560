@@ -17,7 +17,7 @@ CREATE TABLE `books` (
   `copies_available` INT(11) NOT NULL,
   `checked_out_by` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) 
+);
 
 
 -- Table structure for table `checked_out`
@@ -49,7 +49,7 @@ INSERT INTO `users` (`user_id`, `username`, `email`, `password`, `is_admin`) VAL
 (2, 'usertest', 'usertest@testing.com', '$2y$10$5/ZfutWCCemhYpnOjroG..Mz02nhXJqVzosOyTGmBorgWfInwJqhW', 0);
 
 -- Dumping data for table `books`
-INSERT INTO `books` VALUES ( `id`, `title`, `author`, `description`, `length`, `genre`, `image`) VALUES
+INSERT INTO `books` ( `id`, `title`, `author`, `description`, `length`, `genre`, `image`) VALUES
 (1, 'A Game Of Thrones', 'George R. R. Martin', 'The first book in A Song of Ice and Fire', 720, 'Fantasy', 'https://m.media-amazon.com/images/I/714ExofeKJL._AC_UF1000,1000_QL80_.jpg'),
 (2, 'A Clash of Kings', 'George R. R. Martin', 'The second book in A Song of Ice and Fire', 1040, 'Fantasy', 'https://m.media-amazon.com/images/I/71R9pRtC6AL._AC_UF1000,1000_QL80_.jpg'),
 (3, 'A Storm of Swords', 'George R. R. Martin', 'The third book in A Song of Ice and Fire', 1008, 'Fantasy', 'https://m.media-amazon.com/images/I/71hzYSMbvZL._AC_UF1000,1000_QL80_.jpg'),
