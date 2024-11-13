@@ -1,9 +1,13 @@
 <?php
 session_start();
 
-// Check if the user is already logged in
+// Check if the user is already logged in and redirect based on user role
 if (isset($_SESSION['user_id'])) {
-    header('Location: admin_dashboard.php'); // Redirect to admin dashboard if logged in
+    if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
+        header('Location: admin_dashboard.php');
+    } else {
+        header('Location: user_dashboard.php');
+    }
     exit();
 }
 ?>
@@ -13,7 +17,7 @@ if (isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS if available -->
     <title>Library Management System</title>
     <style>
         body {
@@ -25,10 +29,11 @@ if (isset($_SESSION['user_id'])) {
 
         h1 {
             margin-bottom: 20px;
+            font-size: 2em;
         }
 
         .button {
-            background-color: #007bff; /* Bootstrap primary color */
+            background-color: #007bff; /* Primary color */
             color: white;
             padding: 10px 20px;
             border: none;
@@ -37,12 +42,12 @@ if (isset($_SESSION['user_id'])) {
             cursor: pointer;
             font-size: 18px;
             margin: 10px;
+            transition: background-color 0.3s;
         }
 
         .button:hover {
-            background-color: #0056b3; /* Darken button on hover */
+            background-color: #0056b3; /* Darker color on hover */
         }
-
     </style>
 </head>
 <body>
@@ -53,3 +58,4 @@ if (isset($_SESSION['user_id'])) {
 
 </body>
 </html>
+
