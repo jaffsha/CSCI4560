@@ -12,11 +12,17 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== 1) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = $_POST['title'];
     $author = $_POST['author'];
-    $isbn = $_POST['isbn'];
+    $copies_available = $_POST['copies_available'];
+    $description = $_POST['description'];
+    $length = $_POST['length'];
+    $genre = $_POST['genre'];
+    $image = $_POST['image'];
 
-    $stmt = $conn->prepare("INSERT INTO books (title, author, isbn) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $title, $author, $isbn);
+    // Prepare statement to insert book details
+    $stmt = $conn->prepare("INSERT INTO books (title, author, copies_available, description, length, genre, image) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssissis", $title, $author, $copies_available, $description, $length, $genre, $image);
 
+    // Execute and check for success
     if ($stmt->execute()) {
         echo "Book added successfully!";
     } else {
