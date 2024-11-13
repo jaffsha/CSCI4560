@@ -13,13 +13,16 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Initialize error message
+$error = '';
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
     // Prepare SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT user_id, password, is_admin FROM users WHERE username = ?"); // Select is_admin as well
+    $stmt = $conn->prepare("SELECT user_id, password, is_admin FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -27,16 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if a user was found
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
+
         // Verify the password
         if (password_verify($password, $row['password'])) {
+            session_regenerate_id(true); // Regenerate session ID for security
             $_SESSION['user_id'] = $row['user_id']; // Store user ID in session
             $_SESSION['is_admin'] = $row['is_admin']; // Store user role in session
 
             // Redirect based on admin status
             if ($row['is_admin'] == 1) {
-                header("Location: admin_dashboard.php"); // Redirect to admin dashboard
+                header("Location: admin_dashboard.php");
             } else {
-                header("Location: user_dashboard.php"); // Redirect to user dashboard
+                header("Location: user_dashboard.php");
             }
             exit();
         } else {
@@ -69,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container">
         <h1>Login</h1>
-        <?php if (isset($error)) : ?>
-            <div class="error"><?php echo $error; ?></div>
+        <?php if (!empty($error)) : ?>
+            <div class="error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         <form action="login.php" method="post">
             <label for="username">Username:</label>
