@@ -4,31 +4,44 @@ include 'db_connect.php'; // Include your database connection
 
 // Check if the user is already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: admin_dashboard.php"); // Redirect to dashboard
+    header("Location: admin_dashboard.php"); // Redirect to dashboard if already logged in
     exit();
 }
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
+    // Get the form values and sanitize them
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
     $password = $_POST['password'];
-    $email = $_POST['email']; // Assuming you're adding email in registration
-    
-    // Hash the password
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-    // Prepare SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $username, $hashed_password, $email);
-    
-    if ($stmt->execute()) {
-        // Redirect to login page after successful registration
-        header("Location: login.php");
-        exit();
-    } else {
-        $error = "Registration failed: " . $stmt->error;
+    // Validate input
+    if (empty($username) || empty($email) || empty($password)) {
+        $error = "All fields are required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid email format.";
+    } elseif (strlen($password) < 8) { // Password length check
+        $error = "Password must be at least 8 characters long.";
     }
-    $stmt->close();
+
+    // If there are no validation errors
+    if (!isset($error)) {
+        // Hash the password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Prepare SQL statement to prevent SQL injection
+        $stmt = $conn->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $username, $hashed_password, $email);
+
+        if ($stmt->execute()) {
+            // Redirect to login page after successful registration
+            header("Location: login.php");
+            exit();
+        } else {
+            $error = "Registration failed: " . $stmt->error;
+        }
+        $stmt->close();
+    }
 }
 ?>
 
@@ -54,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <h1>Register</h1>
         <?php if (isset($error)) : ?>
-            <div class="error"><?php echo $error; ?></div>
+            <div class="error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         <form action="register.php" method="post">
             <label for="username">Username:</label>
