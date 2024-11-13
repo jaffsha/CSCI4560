@@ -4,7 +4,7 @@ require 'db_connect.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php'); // Redirect to login page if not logged in
+    header('Location: login.php');
     exit();
 }
 
@@ -21,12 +21,12 @@ if (isset($_POST['show_available_books'])) {
     $show_checked_out_books = true;
 }
 
-// Fetch available books
-$books_query = "SELECT id, title, author, copies_available FROM books WHERE copies_available > 0";
+// Fetch available books with additional details
+$books_query = "SELECT id, title, author, copies_available, description, image, length, genre FROM books WHERE copies_available > 0";
 $books_result = $conn->query($books_query);
 
-// Fetch checked-out books for the user
-$checked_out_query = "SELECT books.id, books.title, books.author FROM checked_out
+// Fetch checked-out books for the user including image
+$checked_out_query = "SELECT books.id, books.title, books.author, books.image FROM checked_out
                       JOIN books ON checked_out.book_id = books.id
                       WHERE checked_out.user_id = ?";
 $checked_out_stmt = $conn->prepare($checked_out_query);
@@ -38,38 +38,64 @@ $checked_out_result = $checked_out_stmt->get_result();
 if (isset($_POST['checkout_book'])) {
     $book_id = $_POST['book_id'];
 
-    // Update the checked_out table and decrease the book copies
-    $stmt = $conn->prepare("INSERT INTO checked_out (user_id, book_id) VALUES (?, ?)");
-    $stmt->bind_param("ii", $_SESSION['user_id'], $book_id);
-    $stmt->execute();
-    
-    // Decrease the copies available in the books table
-    $update_stmt = $conn->prepare("UPDATE books SET copies_available = copies_available - 1 WHERE id = ?");
-    $update_stmt->bind_param("i", $book_id);
-    $update_stmt->execute();
+    // Begin transaction to handle checkout process
+    $conn->begin_transaction();
 
-    echo "<script>alert('Book checked out successfully!');</script>";
-    $update_stmt->close();
-    $stmt->close();
+    try {
+        // Insert into checked_out table
+        $stmt = $conn->prepare("INSERT INTO checked_out (user_id, book_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $_SESSION['user_id'], $book_id);
+        $stmt->execute();
+
+        // Decrease the copies available in the books table
+        $update_stmt = $conn->prepare("UPDATE books SET copies_available = copies_available - 1 WHERE id = ?");
+        $update_stmt->bind_param("i", $book_id);
+        $update_stmt->execute();
+
+        // Commit transaction
+        $conn->commit();
+
+        echo "<script>alert('Book checked out successfully!');</script>";
+
+        $update_stmt->close();
+        $stmt->close();
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        echo "<script>alert('Error checking out book. Please try again later.');</script>";
+    }
 }
 
 // Handle book check-in
 if (isset($_POST['checkin_book'])) {
     $book_id = $_POST['book_id'];
 
-    // Delete the record from checked_out table
-    $delete_stmt = $conn->prepare("DELETE FROM checked_out WHERE user_id = ? AND book_id = ?");
-    $delete_stmt->bind_param("ii", $_SESSION['user_id'], $book_id);
-    $delete_stmt->execute();
+    // Begin transaction to handle check-in process
+    $conn->begin_transaction();
 
-    // Increase the copies available in the books table
-    $update_stmt = $conn->prepare("UPDATE books SET copies_available = copies_available + 1 WHERE id = ?");
-    $update_stmt->bind_param("i", $book_id);
-    $update_stmt->execute();
+    try {
+        // Delete the record from checked_out table
+        $delete_stmt = $conn->prepare("DELETE FROM checked_out WHERE user_id = ? AND book_id = ?");
+        $delete_stmt->bind_param("ii", $_SESSION['user_id'], $book_id);
+        $delete_stmt->execute();
 
-    echo "<script>alert('Book checked in successfully!');</script>";
-    $delete_stmt->close();
-    $update_stmt->close();
+        // Increase the copies available in the books table
+        $update_stmt = $conn->prepare("UPDATE books SET copies_available = copies_available + 1 WHERE id = ?");
+        $update_stmt->bind_param("i", $book_id);
+        $update_stmt->execute();
+
+        // Commit transaction
+        $conn->commit();
+
+        echo "<script>alert('Book checked in successfully!');</script>";
+
+        $delete_stmt->close();
+        $update_stmt->close();
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        echo "<script>alert('Error checking in book. Please try again later.');</script>";
+    }
 }
 ?>
 
@@ -81,52 +107,66 @@ if (isset($_POST['checkin_book'])) {
     <link rel="stylesheet" href="styles.css">
     <title>User Dashboard</title>
     <style>
-    /* Reset form styles */
-    form {
-        margin: 0; /* Remove default margin */
-        padding: 0; /* Remove default padding */
-        border: none; /* Remove default border */
-        background: none; /* Remove default background */
-        box-shadow: none; /* Remove any box shadow */
-    }
+        /* Reset form styles */
+        form {
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: none;
+            box-shadow: none;
+        }
 
-    .button {
-        background-color: #007bff; /* Primary color */
-        color: white;
-        padding: 10px 20px;
-        border: none; /* Remove default border */
-        border-radius: 5px; /* Rounded corners */
-        text-align: center;
-        text-decoration: none;
-        cursor: pointer;
-        display: inline-block; /* Ensure inline-block for buttons */
-        transition: background-color 0.3s; /* Smooth transition for hover */
-        outline: none; /* Remove outline when focused */
-        box-shadow: none; /* Remove any box shadow */
-        margin: 0; /* Ensure no margin */
-        width: auto; /* Allow width to be auto */
-        background-clip: padding-box; /* Background covers only padding */
-    }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.3s;
+            outline: none;
+            box-shadow: none;
+            margin: 0;
+        }
 
-    .button:hover {
-        background-color: #0056b3; /* Darken button on hover */
-    }
+        .button:hover {
+            background-color: #0056b3;
+        }
 
-    /* Remove default browser button styles */
-    button {
-        appearance: none; /* Remove default button styling */
-        -webkit-appearance: none; /* Remove default button styling in Safari */
-        -moz-appearance: none; /* Remove default button styling in Firefox */
-        padding: 0; /* Reset padding */
-        margin: 0; /* Reset margin */
-        border: none; /* Reset border */
-        background: none; /* Reset background */
-        color: inherit; /* Inherit color */
-        font: inherit; /* Inherit font settings */
-    }
-</style>
+        button {
+            appearance: none;
+            padding: 0;
+            margin: 0;
+            border: none;
+            background: none;
+            color: inherit;
+            font: inherit;
+        }
 
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
 
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        td img {
+            width: 50px;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -154,6 +194,10 @@ if (isset($_POST['checkin_book'])) {
                         <th>Title</th>
                         <th>Author</th>
                         <th>Copies Available</th>
+                        <th>Description</th>
+                        <th>Length</th>
+                        <th>Genre</th>
+                        <th>Image</th>
                         <th>Action</th>
                     </tr>
                     <?php while ($book = $books_result->fetch_assoc()): ?>
@@ -161,6 +205,16 @@ if (isset($_POST['checkin_book'])) {
                             <td><?php echo htmlspecialchars($book['title']); ?></td>
                             <td><?php echo htmlspecialchars($book['author']); ?></td>
                             <td><?php echo htmlspecialchars($book['copies_available']); ?></td>
+                            <td><?php echo htmlspecialchars($book['description']); ?></td>
+                            <td><?php echo htmlspecialchars($book['length']); ?></td>
+                            <td><?php echo htmlspecialchars($book['genre']); ?></td>
+                            <td>
+                                <?php if (!empty($book['image'])): ?>
+                                    <img src="<?php echo htmlspecialchars($book['image']); ?>" alt="Book Image">
+                                <?php else: ?>
+                                    <p>No Image Available</p>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <form action="user_dashboard.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
@@ -181,12 +235,20 @@ if (isset($_POST['checkin_book'])) {
                     <tr>
                         <th>Title</th>
                         <th>Author</th>
+                        <th>Image</th>
                         <th>Action</th>
                     </tr>
                     <?php while ($book = $checked_out_result->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($book['title']); ?></td>
                             <td><?php echo htmlspecialchars($book['author']); ?></td>
+                            <td>
+                                <?php if (!empty($book['image'])): ?>
+                                    <img src="<?php echo htmlspecialchars($book['image']); ?>" alt="Book Image">
+                                <?php else: ?>
+                                    <p>No Image Available</p>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <form action="user_dashboard.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
@@ -203,3 +265,4 @@ if (isset($_POST['checkin_book'])) {
     </div>
 </body>
 </html>
+
