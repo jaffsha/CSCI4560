@@ -3,9 +3,14 @@ session_start(); // Start the session
 include 'db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get the values from the form
-    $username = $_POST['username'];
+    // Get and validate form inputs
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
+
+    if (empty($username) || empty($password)) {
+        echo "Username and password are required.";
+        exit();
+    }
 
     // Prepare and execute the statement
     $stmt = $conn->prepare("SELECT user_id, password, is_admin FROM users WHERE username = ?");
@@ -19,6 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Verify the password
         if (password_verify($password, $hashed_password)) {
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+
             // Set session variables
             $_SESSION['user_id'] = $user_id;
             $_SESSION['username'] = $username;
@@ -28,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($is_admin) {
                 header("Location: admin_dashboard.php");
             } else {
-                header("Location: index.php");
+                header("Location: user_dashboard.php");
             }
             exit(); // Ensure no further code is executed after redirection
         } else {
@@ -43,3 +51,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $conn->close();
 }
 ?>
+
