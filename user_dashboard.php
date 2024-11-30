@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+
 // Initialize variables
 $show_available_books = true;
 $show_checked_out_books = false;
@@ -25,6 +26,7 @@ if (isset($_POST['show_available_books'])) {
 $books_query = "SELECT id, title, author, copies_available, description, image, length, genre FROM books WHERE copies_available > 0";
 $books_result = $conn->query($books_query);
 
+
 // Fetch checked-out books for the user including image
 $checked_out_query = "SELECT books.id, books.title, books.author, books.image FROM checked_out
                       JOIN books ON checked_out.book_id = books.id
@@ -34,18 +36,31 @@ $checked_out_stmt->bind_param("i", $_SESSION['user_id']);
 $checked_out_stmt->execute();
 $checked_out_result = $checked_out_stmt->get_result();
 
+
+
 // Handle book checkout
 if (isset($_POST['checkout_book'])) {
-    $book_id = $_POST['book_id'];
 
-    // Begin transaction to handle checkout process
-    $conn->begin_transaction();
+
+    if (!isset($_SESSION['user_id']) || empty($_POST['book_id'])) {
+        die('Invalid input or session.');
+    }
+
+      // Insert into checked_out table
+      $book_id = (int)$_POST['book_id'];
+      $user_id = (int)$_SESSION['user_id'];
+
+
 
     try {
-        // Insert into checked_out table
-        $stmt = $conn->prepare("INSERT INTO checked_out (user_id, book_id) VALUES (?, ?)");
-        $stmt->bind_param("ii", $_SESSION['user_id'], $book_id);
+
+          // Begin transaction to handle checkout process
+        $conn->begin_transaction();
+        $line = "INSERT INTO checked_out (user_id, book_id) VALUES (?, ?)";
+        $stmt = $conn->prepare($line);
+        $stmt->bind_param('ii', $user_id, $book_id);
         $stmt->execute();
+
 
         // Decrease the copies available in the books table
         $update_stmt = $conn->prepare("UPDATE books SET copies_available = copies_available - 1 WHERE id = ?");
@@ -57,12 +72,17 @@ if (isset($_POST['checkout_book'])) {
 
         echo "<script>alert('Book checked out successfully!');</script>";
 
-        $update_stmt->close();
-        $stmt->close();
+        
     } catch (Exception $e) {
+
         // Rollback transaction on error
         $conn->rollback();
+        echo "<script>console.log('Message " . $e->getMessage() . "')</script>";
         echo "<script>alert('Error checking out book. Please try again later.');</script>";
+
+    } finally{
+        if (isset($stmt)) $stmt->close();
+        if (isset($update_stmt)) $update_stmt->close();
     }
 }
 
@@ -263,6 +283,7 @@ if (isset($_POST['checkin_book'])) {
             <?php endif; ?>
         <?php endif; ?>
     </div>
+
 </body>
 </html>
 
