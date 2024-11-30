@@ -126,67 +126,8 @@ if (isset($_POST['checkin_book'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <title>User Dashboard</title>
-    <style>
-        /* Reset form styles */
-        form {
-            margin: 0;
-            padding: 0;
-            border: none;
-            background: none;
-            box-shadow: none;
-        }
+    <link rel="stylesheet" href="styles.css">
 
-        .button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            display: inline-block;
-            transition: background-color 0.3s;
-            outline: none;
-            box-shadow: none;
-            margin: 0;
-        }
-
-        .button:hover {
-            background-color: #0056b3;
-        }
-
-        button {
-            appearance: none;
-            padding: 0;
-            margin: 0;
-            border: none;
-            background: none;
-            color: inherit;
-            font: inherit;
-        }
-
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        td img {
-            width: 50px;
-            height: auto;
-        }
-    </style>
 </head>
 <body>
     <header>
